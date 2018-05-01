@@ -14,18 +14,12 @@ Hint: you'll probably still need to use .map.
 
   var home = null;
 
-  /**
-   * Helper function to show the search query.
-   * @param {String} query - The search query.
-   */
+  // Helper function to show the search query.
   function addSearchHeader(query) {
     home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
   }
 
-  /**
-   * Helper function to create a planet thumbnail.
-   * @param  {Object} data - The raw data describing the planet.
-   */
+  // Helper function to create a planet thumbnail.
   function createPlanetThumb(data) {
     var pT = document.createElement('planet-thumb');
     for (var d in data) {
@@ -34,20 +28,12 @@ Hint: you'll probably still need to use .map.
     home.appendChild(pT);
   }
 
-  /**
-   * XHR wrapped in a promise
-   * @param  {String} url - The URL to fetch.
-   * @return {Promise}    - A Promise that resolves when the XHR succeeds and fails otherwise.
-   */
+  // XHR wrapped in a promise
   function get(url) {
     return fetch(url);
   }
 
-  /**
-   * Performs an XHR for a JSON and returns a parsed JSON response.
-   * @param  {String} url - The JSON URL to fetch.
-   * @return {Promise}    - A promise that passes the parsed JSON response.
-   */
+  // Performs an XHR for a JSON and returns a parsed JSON response.
   function getJSON(url) {
     return get(url).then(function(response) {
       return response.json();
@@ -56,17 +42,19 @@ Hint: you'll probably still need to use .map.
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Refactor this code with Promise.all!
-     */
+
     getJSON('../data/earth-like-results.json')
-    .then(function(response) {
-
-      addSearchHeader(response.query);
-
-      response.results.map(function(url) {
-        getJSON(url).then(createPlanetThumb);
-      });
-    });
+      .then(function(response) {
+        addSearchHeader(response.query);
+        // create an array of intentionally-ordered promises
+        return Promise.all(response.results.map(getJSON))
+      })
+      .then(function(planetsArray){
+        // after resolving each of those promises, generate
+        // a thumbnail for each item
+        planetsArray.forEach(function(planet) {
+          createPlanetThumb(planet)
+        });
+      })
   });
 })(document);
