@@ -15,18 +15,12 @@ Instructions:
 
   var home = null;
 
-  /**
-   * Helper function to show the search query.
-   * @param {String} query - The search query.
-   */
+  //Helper function to show the search query.
   function addSearchHeader(query) {
     home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
   }
 
-  /**
-   * Helper function to create a planet thumbnail.
-   * @param  {Object} data - The raw data describing the planet.
-   */
+  //Helper function to create a planet thumbnail.
   function createPlanetThumb(data) {
     var pT = document.createElement('planet-thumb');
     for (var d in data) {
@@ -35,37 +29,37 @@ Instructions:
     home.appendChild(pT);
   }
 
-  /**
-   * XHR wrapped in a promise.
-   * @param  {String} url - The URL to fetch.
-   * @return {Promise}    - A Promise that resolves when the XHR succeeds and fails otherwise.
-   */
+  //XHR wrapped in a promise.
   function get(url) {
     return fetch(url, {
       method: 'get'
     });
   }
 
-  /**
-   * Performs an XHR for a JSON and returns a parsed JSON response.
-   * @param  {String} url - The JSON URL to fetch.
-   * @return {Promise}    - A promise that passes the parsed JSON response.
-   */
+  //Performs an XHR for a JSON and returns a parsed JSON response.
   function getJSON(url) {
     return get(url).then(function(response) {
       return response.json();
     });
   }
 
+  function buildPlanet(url){
+    return getJSON(url).then(createPlanetThumb);
+  }
+
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Refactor this code!
-     */
+    //Refactor this code!
     getJSON('../data/earth-like-results.json')
     .then(function(response) {
+      // Set up placeholder for planet promises
+      let planetPromises = Promise.resolve()
+      // add the search header
+      addSearchHeader(response.query)
+
+      // for each result, generate and resolve the promises
       response.results.forEach(function(url) {
-        getJSON(url).then(createPlanetThumb);
+        planetPromises = planetPromises.then(buildPlanet(url))
       });
     });
   });
