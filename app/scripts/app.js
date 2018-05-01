@@ -15,42 +15,29 @@ Instructions:
 
   var home = null;
 
-  /**
-   * Helper function to show the search query.
-   * @param {String} query - The search query.
-   */
+  // Helper function to create page heading
   function addSearchHeader(query) {
     home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
   }
 
-  /**
-   * Helper function to create a planet thumbnail.
-   * @param  {Object} data - The raw data describing the planet.
-   */
+  //Helper function to create a planet thumbnail.
   function createPlanetThumb(data) {
-    var pT = document.createElement('planet-thumb');
+    var planetThumb = document.createElement('planet-thumb');
     for (var d in data) {
-      pT[d] = data[d];
+      planetThumb[d] = data[d];
     }
-    home.appendChild(pT);
+    home.appendChild(planetThumb);
   }
 
-  /**
-   * XHR wrapped in a promise
-   * @param  {String} url - The URL to fetch.
-   * @return {Promise}    - A Promise that resolves when the XHR succeeds and fails otherwise.
-   */
+  //XHR wrapped in a promise
   function get(url) {
     return fetch(url, {
       method: 'get'
     });
   }
 
-  /**
-   * Performs an XHR for a JSON and returns a parsed JSON response.
-   * @param  {String} url - The JSON URL to fetch.
-   * @return {Promise}    - A promise that passes the parsed JSON response.
-   */
+  //A promise wrapped in a function that performs an XHR for
+  // JSON and returns a parsed JSON response.
   function getJSON(url) {
     return get(url).then(function(response) {
       return response.json();
@@ -59,11 +46,24 @@ Instructions:
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Uncomment the next line and start here when you're ready to add the first thumbnail!
 
-    Your code goes here!
-     */
-    // getJSON('../data/earth-like-results.json')
+    // Call the function/promise to get json
+    getJSON('../data/earth-like-results.json')
+    .then(function(response){
+      // string a then to process the JSON
+      addSearchHeader(response.query)
+      // return the 1st piece of data
+      return getJSON(response.results[0])
+    })
+    .catch(function(){
+      // string a catch to process a failure
+      throw Error('Search Request Error')
+    })
+    .then(createPlanetThumb)//processes data from the previous then
+    .catch(function(error){
+      // string a catch to handle errors
+      addSearchHeader('unknown')
+      console.log(error)
+    })
   });
 })(document);
