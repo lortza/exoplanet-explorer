@@ -23,41 +23,32 @@ Instructions:
     home.innerHTML = '<h2 class="page-title">query: ' + query + '</h2>';
   }
 
-  /**
-   * XHR wrapped in a Promise using Fetch.
-   * @param  {String} url - The URL to fetch.
-   * @return {Promise}    - A Promise that resolves when the XHR succeeds and fails otherwise.
-   */
   function get(url) {
-    /*
-    Use the Fetch API to GET a URL.
-    Return the fetch.
-
-    Your code goes here!
-     */
+    // Use the Fetch API to GET a URL.
+    // Return the fetch (which is a promise).
+     return fetch(url, {method: 'get'})
   }
 
-  /**
-   * Performs an XHR for a JSON and returns a parsed JSON response.
-   * @param  {String} url - The JSON URL to fetch.
-   * @return {Promise}    - A promise that passes the parsed JSON response.
-   */
   function getJSON(url) {
-    /*
-    Return a Promise that gets a URL and parses the JSON response. Use your get method!
-
-    Your code goes here!
-     */
+    // Return a Promise that gets a URL and parses the JSON response. Use your get method!
+     return get(url).then(function(response){
+      if(!response.ok){
+        throw Error(response.statusText ? response.statusText : 'Unknown network error')
+      }
+      return response.json()
+     })
   }
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Uncomment the next line when you're ready to test!
-    Don't forget to chain with a .then and a .catch!
-
-    Your code goes here too!
-     */
-    // getJSON('../data/earth-like-results.json')
+    getJSON('../data/earth-like-results.json')
+    .then(function(response){
+      addSearchHeader(response.query)
+      console.log(response)
+    })
+    .catch(function(error){
+      addSearchHeader('Unknown')
+      console.log(error)
+    })
   });
 })(document);
